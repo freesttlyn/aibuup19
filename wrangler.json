@@ -3,7 +3,6 @@
   "name": "ai-buup19",
   "compatibility_date": "2025-02-05",
   "assets": {
-    "directory": "./dist",
-    "binding": "ASSETS"
+    "directory": "./dist"
   }
 }

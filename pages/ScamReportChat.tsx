@@ -109,17 +109,17 @@ const ScamReportChat: React.FC = () => {
       
       const prompt = `
         너는 AI 부업 검증 플랫폼 'Ai BuUp'의 수석 사기 피해 분석 에이전트야. 
-        사용자가 입력한 사기 피해(강팔이) 데이터를 바탕으로 매우 비판적이고 분석적인 '피해 고발 리포트'를 작성해줘.
+        사용자가 입력한 사기 피해(강팔이) 데이터를 바탕으로 비판적이고 분석적인 '피해 고발 리포트'를 작성해줘.
         
         데이터:
         ${qaPairs}
         
         작성 가이드라인:
         1. 마크다운 형식을 사용하여 전문적으로 작성할 것.
-        2. '## ⚠️ [강팔이 피해 고발] 정밀 분석 리포트'로 시작할 것.
-        3. '피해 개요', '기망 기법 분석(어떻게 속였는가)', '실제 피해 사실', 'AI 감사관의 최종 경고', '다른 모험가들을 위한 방어 가이드' 섹션으로 나눌 것.
-        4. 사용자의 답변을 논리적으로 재구성하여 읽는 사람이 피해의 심각성을 느낄 수 있게 할 것.
-        5. 리포트 최상단에 매력적인 제목을 TITLE: [제목] 형식으로 제안해줘.
+        2. 최상단에 "TITLE: [제목]" 형식으로 제목을 제안할 것.
+        3. '## ⚠️ 강팔이 피해 분석 리포트' 섹션으로 시작할 것.
+        4. '피해 사실 분석', '기망 행위 포인트', 'AI 감사관 최종 판정' 섹션을 포함할 것.
+        5. 매우 엄격하고 비판적인 톤을 유지할 것.
       `;
 
       const response = await ai.models.generateContent({
@@ -129,7 +129,7 @@ const ScamReportChat: React.FC = () => {
 
       const aiText = response.text || "";
       const titleMatch = aiText.match(/TITLE:\s*(.*)/i);
-      const generatedTitle = titleMatch ? titleMatch[1].trim() : `[피해사례] ${finalAnswers[0]} 관련 제보`;
+      const generatedTitle = titleMatch ? titleMatch[1].trim() : `[피해제보] ${finalAnswers[0]} 분석 리포트`;
       const cleanedContent = aiText.replace(/TITLE:.*\n?/i, '').trim();
 
       const newPost: any = {
@@ -158,42 +158,18 @@ const ScamReportChat: React.FC = () => {
       setMessages(prev => [...prev, { 
         id: Date.now(), 
         sender: 'bot', 
-        text: "데이터 분석이 완료되었습니다. 생성된 리포트는 게시판에 즉시 등록되었습니다. 🛡️ 당신의 용기 있는 제보에 감사드립니다." 
+        text: "데이터 분석이 완료되었습니다. 생성된 리포트는 게시판에 즉시 등록되었습니다. 🛡️ 당신의 제보가 다른 이들의 방패가 됩니다." 
       }]);
 
       setTimeout(() => {
         navigate('/community?cat=강팔이피해사례');
-      }, 2000);
+      }, 3000);
 
     } catch (err: any) {
       console.error("AI Generation Error:", err);
-      const structuredContent = `
-### ⚠️ 강팔이 피해 리포트 (수동 아카이브)
-
-**1. 실행 부업:** ${finalAnswers[0]}
-**2. 강의 비용:** ${finalAnswers[1]}
-**3. 피해 판단:** AI 분석 중 오류가 발생하여 기본 데이터만 저장되었습니다. (원인: ${err.message || '인증 오류'})
-      `.trim();
-
-      const fallbackPost = {
-        title: `[피해사례] ${finalAnswers[0]} 관련 제보 리포트`,
-        author: authorName || '익명',
-        category: '강팔이피해사례',
-        content: structuredContent,
-        result: '검토 중 (AI 오류)',
-        cost: finalAnswers[1],
-        user_id: user?.id,
-        created_at: new Date().toISOString()
-      };
-
-      if (!isDemoMode && user) {
-        await supabase.from('posts').insert([fallbackPost]);
-      } else {
-        const demoFallback = { ...fallbackPost, id: `post-${Date.now()}` };
-        const existing = JSON.parse(localStorage.getItem('demo_posts') || '[]');
-        localStorage.setItem('demo_posts', JSON.stringify([demoFallback, ...existing]));
-      }
-      navigate('/community?cat=강팔이피해사례');
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "리포트 생성 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요." }]);
+      setIsSubmitting(false);
+      setIsBotTyping(false);
     }
   };
 
@@ -215,13 +191,9 @@ const ScamReportChat: React.FC = () => {
               </div>
               <div>
                 <h2 className="text-white font-black text-sm tracking-tight flex items-center gap-2">
-                  AI 감사관
-                  <span className="flex size-2">
-                    <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-                  </span>
+                  AI 감사관 (Scam Audit)
                 </h2>
-                <p className="text-[10px] text-emerald-500/60 font-bold uppercase tracking-widest">Active Intelligence</p>
+                <p className="text-[10px] text-emerald-500/60 font-bold uppercase tracking-widest">Active Monitoring</p>
               </div>
             </div>
           </div>
@@ -229,7 +201,7 @@ const ScamReportChat: React.FC = () => {
              <div className="text-[10px] font-black text-gray-600 uppercase mb-1 tracking-widest">Audit Progress</div>
              <div className="w-32 h-1.5 bg-white/5 rounded-full overflow-hidden">
                <div 
-                 className="h-full bg-emerald-500 transition-all duration-700 ease-out" 
+                 className="h-full bg-emerald-500 transition-all duration-700 ease-out shadow-[0_0_10px_rgba(16,185,129,0.5)]" 
                  style={{ width: `${((currentStep + 1) / QUESTIONS.length) * 100}%` }}
                />
              </div>
@@ -254,7 +226,7 @@ const ScamReportChat: React.FC = () => {
           
           {isBotTyping && (
             <div className="flex justify-start animate-pulse">
-              <div className="bg-[#333] px-5 py-3 rounded-[1.8rem] rounded-tl-none flex gap-1 items-center border border-white/5">
+              <div className="bg-[#333] px-5 py-3 rounded-[1.8rem] rounded-tl-none flex gap-2 items-center border border-white/5">
                 <div className="size-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                 <div className="size-1.5 bg-gray-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                 <div className="size-1.5 bg-gray-500 rounded-full animate-bounce"></div>
@@ -268,13 +240,13 @@ const ScamReportChat: React.FC = () => {
         <div className="bg-[#2a2a2a] p-6 space-y-4 shadow-2xl">
           {currentStep === 0 && !authorName && (
             <div className="animate-fadeIn bg-black/20 p-4 rounded-2xl border border-white/5">
-               <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block">당신의 모험가 닉네임</label>
+               <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 block ml-1">당신의 모험가 닉네임</label>
                <input 
                  type="text"
                  placeholder="예: 깨어있는모험가"
                  value={authorName}
                  onChange={(e) => setAuthorName(e.target.value)}
-                 className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/30"
+                 className="w-full bg-black/40 border border-white/5 rounded-xl px-4 py-3 text-sm text-white outline-none focus:border-emerald-500/30 transition-all"
                />
             </div>
           )}
@@ -286,15 +258,15 @@ const ScamReportChat: React.FC = () => {
               value={userInput}
               onChange={(e) => setUserInput(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-              placeholder={isSubmitting ? "AI 리포트 분석 중..." : "답변을 입력하세요..."}
+              placeholder={isSubmitting ? "분석 리포트 생성 중..." : "답변을 입력하세요..."}
               disabled={isSubmitting || isBotTyping}
-              className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white outline-none focus:border-emerald-500/50 transition-all placeholder:text-gray-600"
+              className="flex-1 bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-sm text-white outline-none focus:border-emerald-500/50 transition-all placeholder:text-gray-700"
             />
             <button 
               onClick={handleSend}
               disabled={isSubmitting || !userInput.trim() || isBotTyping}
               className={`size-14 rounded-2xl flex items-center justify-center transition-all shadow-xl ${
-                userInput.trim() && !isBotTyping ? 'bg-[#fee500] text-black scale-100' : 'bg-neutral-800 text-gray-600 scale-95 opacity-50'
+                userInput.trim() && !isBotTyping ? 'bg-[#fee500] text-black scale-100 hover:scale-105' : 'bg-neutral-800 text-gray-600 scale-95 opacity-50 cursor-not-allowed'
               }`}
             >
               <svg className="size-6" fill="currentColor" viewBox="0 0 24 24">
@@ -303,12 +275,26 @@ const ScamReportChat: React.FC = () => {
             </button>
           </div>
           {isSubmitting && (
-            <p className="text-[10px] text-center text-emerald-500 font-black animate-pulse uppercase tracking-[0.2em]">
-              AI가 심층 데이터를 생성하고 있습니다...
-            </p>
+            <div className="flex flex-col items-center gap-2 py-2">
+               <p className="text-[10px] text-center text-emerald-500 font-black animate-pulse uppercase tracking-[0.2em]">
+                 AI 데이터 정밀 분석 및 게시판 등록 중...
+               </p>
+               <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                 <div className="h-full bg-emerald-500 animate-progressBar" />
+               </div>
+            </div>
           )}
         </div>
       </div>
+      <style>{`
+        @keyframes progressBar {
+          0% { width: 0%; }
+          100% { width: 100%; }
+        }
+        .animate-progressBar {
+          animation: progressBar 3s linear forwards;
+        }
+      `}</style>
     </div>
   );
 };

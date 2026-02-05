@@ -53,7 +53,7 @@ const CommunityWrite: React.FC = () => {
     setIsBotTyping(true);
 
     try {
-      // API_KEY는 직접 참조해야 빌드 시스템이 값을 주입할 수 있습니다.
+      // Create AI instance using process.env.API_KEY as per guidelines
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
@@ -63,10 +63,10 @@ const CommunityWrite: React.FC = () => {
             현재 사용자는 '${name}' 카테고리에 대한 정보를 공유하려고 합니다.
             
             당신의 목표:
-            1. 사용자의 부업 경험담에서 '진짜 데이터'를 추출하기 위해 날카로운 질문을 던지세요.
-            2. 한 번에 '하나의 질문'만 하세요. 질문은 매우 구체적이어야 합니다.
-            3. 수익성, 투입 시간, 리스크 등을 파고드세요.
-            4. 충분한 정보가 모였다면 메시지 끝에 반드시 "[REPORT_READY]" 태그를 붙이세요.
+            1. 사용자의 부업 경험담에서 '진짜 데이터'를 추출하기 위해 날카롭고 구체적인 질문을 던지세요.
+            2. 한 번에 '하나의 질문'만 하세요. 질문은 매우 짧고 명확해야 합니다.
+            3. 수익성, 투입 시간, 실제 사용 도구, 리스크 등을 집요하게 파고드세요.
+            4. 충분한 정보(최소 3개 이상의 답변)가 모였다면 메시지 끝에 반드시 "[REPORT_READY]" 태그를 붙이세요.
             5. 말투는 냉철하고 지적인 AI 감사관 톤(한국어)을 유지하세요.
           `,
         },
@@ -84,11 +84,11 @@ const CommunityWrite: React.FC = () => {
       ]);
     } catch (err: any) {
       console.error("AI Init Error:", err);
-      let errorMsg = "❌ AI 서버 연결에 실패했습니다. 네트워크 상태를 확인해 주세요.";
-      if (err.message?.includes('API_KEY')) {
-        errorMsg = "🚨 [인증 오류] API 키가 유효하지 않거나 설정되지 않았습니다. 관리자 설정(Cloudflare)을 확인하세요.";
-      }
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: errorMsg }]);
+      setMessages(prev => [...prev, { 
+        id: Date.now(), 
+        sender: 'bot', 
+        text: "❌ AI 시스템 연결 실패. API_KEY 설정을 확인하거나 네트워크를 점검해 주세요." 
+      }]);
       setStep('SELECT');
     } finally {
       setIsBotTyping(false);
@@ -110,11 +110,11 @@ const CommunityWrite: React.FC = () => {
       setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: botText }]);
 
       if (botText.includes("[REPORT_READY]")) {
-        setTimeout(() => generateFinalReport(), 1000);
+        setTimeout(() => generateFinalReport(), 1500);
       }
     } catch (err) {
       console.error("AI Chat Error:", err);
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "메시지 전송 중 오류가 발생했습니다. 다시 시도해 주세요." }]);
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "메시지 전송 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요." }]);
     } finally {
       setIsBotTyping(false);
     }
@@ -126,7 +126,7 @@ const CommunityWrite: React.FC = () => {
 
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-      const history = messages.map(m => `${m.sender === 'bot' ? '에이전트' : '사용자'}: ${m.text}`).join('\n');
+      const history = messages.map(m => `${m.sender === 'bot' ? '감사관' : '사용자'}: ${m.text}`).join('\n');
       
       const prompt = `
         다음 대화 데이터를 바탕으로 '${selectedCat}' 카테고리에 등록될 최종 '인텔리전스 리포트'를 마크다운으로 작성하세요.
@@ -135,9 +135,12 @@ const CommunityWrite: React.FC = () => {
         ${history}
         
         작성 지침:
-        1. 최상단에 "TITLE: [제목]" 형식으로 매력적인 제목을 포함할 것.
-        2. 부업의 현실적인 난이도, 예상 수익, 리스크를 분석적으로 포함할 것.
-        3. 마크다운 문법을 사용하여 가독성 있게 작성할 것.
+        1. 최상단에 "TITLE: [제목]" 형식으로 리포트의 핵심을 찌르는 제목을 포함할 것.
+        2. "## 🔍 AI 정밀 분석 개요" 섹션으로 시작할 것.
+        3. 수익성 점수(1-10), 난이도, 권장 투입 시간을 명확히 명시할 것.
+        4. 대화에서 얻은 구체적인 수치나 도구를 강조할 것.
+        5. 마지막에는 "AI 분석 결과: [승인/주의/보류]" 중 하나를 선택하여 결론을 낼 것.
+        6. 마크다운 문법을 사용하여 가독성 있게 작성할 것.
       `;
 
       const response = await ai.models.generateContent({
@@ -172,11 +175,11 @@ const CommunityWrite: React.FC = () => {
       }
 
       setStep('DONE');
-      setTimeout(() => navigate(`/community?cat=${selectedCat}`), 2000);
+      setTimeout(() => navigate(`/community?cat=${selectedCat}`), 2500);
 
     } catch (err) {
       console.error("Report Generation Error:", err);
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "리포트 생성 중 오류가 발생했습니다. 대화 내용을 복사해 두시기 바랍니다." }]);
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "리포트 생성 중 오류가 발생했습니다. 대화 내용은 안전하게 보관 중입니다." }]);
       setStep('CHATTING');
     } finally {
       setIsBotTyping(false);
@@ -196,15 +199,18 @@ const CommunityWrite: React.FC = () => {
                 <span className="text-emerald-500 text-xs font-black">AI</span>
               </div>
               <div>
-                <h2 className="text-white font-black text-sm uppercase tracking-tight">AI 감사관 (Live)</h2>
+                <h2 className="text-white font-black text-sm uppercase tracking-tight italic">AI Auditor Live</h2>
                 <div className="flex items-center gap-1.5">
-                  <span className={`size-1 rounded-full ${step === 'GENERATING' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500 animate-pulse'}`} />
-                  <p className={`text-[8px] font-black uppercase tracking-widest ${step === 'GENERATING' ? 'text-amber-500' : 'text-emerald-500/50'}`}>
-                    {step === 'GENERATING' ? 'Analyzing Data...' : 'Interview Active'}
+                  <span className={`size-1.5 rounded-full ${step === 'GENERATING' ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500 animate-pulse'}`} />
+                  <p className={`text-[9px] font-black uppercase tracking-widest ${step === 'GENERATING' ? 'text-amber-500' : 'text-emerald-500/50'}`}>
+                    {step === 'GENERATING' ? 'Deep Analysis...' : 'Session Active'}
                   </p>
                 </div>
               </div>
             </div>
+          </div>
+          <div className="hidden sm:block text-[9px] font-black text-gray-700 uppercase tracking-widest">
+            v3.0.0-Flash
           </div>
         </div>
 
@@ -220,13 +226,13 @@ const CommunityWrite: React.FC = () => {
           {step === 'SELECT' && (
             <div className="space-y-8 mt-4 animate-slideUp">
               <div>
-                <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.3em] mb-4 ml-2">고수의 방 (GOLD 권한)</p>
+                <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.3em] mb-4 ml-2">고수의 방 (GOLD 이상)</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {VIP_CATEGORIES.map(cat => (
                     <button 
                       key={cat.id}
                       onClick={() => handleCategorySelect(cat.name, true)}
-                      className={`relative overflow-hidden bg-[#111] border border-yellow-500/10 p-4 rounded-2xl text-[10px] font-black uppercase tracking-tight transition-all text-left shadow-lg ${
+                      className={`relative overflow-hidden bg-[#111] border border-yellow-500/10 p-4 rounded-2xl text-[10px] font-black uppercase tracking-tight transition-all text-left shadow-lg group ${
                         isGold ? 'hover:bg-yellow-500 hover:text-black text-yellow-500/80 hover:border-yellow-500' : 'opacity-40 grayscale cursor-not-allowed text-gray-600'
                       }`}
                     >
@@ -238,7 +244,7 @@ const CommunityWrite: React.FC = () => {
               </div>
 
               <div>
-                <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.3em] mb-4 ml-2">일반 게시판 (모든 권한)</p>
+                <p className="text-[10px] text-gray-600 font-black uppercase tracking-[0.3em] mb-4 ml-2">일반 게시판</p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {BOARD_CATEGORIES.filter(c => c.id !== 'all').map(cat => (
                     <button 
@@ -256,11 +262,11 @@ const CommunityWrite: React.FC = () => {
 
           {(isBotTyping || step === 'GENERATING') && (
             <div className="flex justify-start">
-              <div className="bg-[#151515] px-6 py-4 rounded-[1.8rem] rounded-tl-none flex gap-1 items-center border border-white/5">
+              <div className="bg-[#151515] px-6 py-4 rounded-[1.8rem] rounded-tl-none flex gap-2 items-center border border-white/5 shadow-2xl">
                 <div className="size-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
                 <div className="size-1.5 bg-emerald-500 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
                 <div className="size-1.5 bg-emerald-500 rounded-full animate-bounce"></div>
-                {step === 'GENERATING' && <span className="text-[10px] font-black text-emerald-500 ml-2 uppercase tracking-widest">AI 인텔리전스 분석 중...</span>}
+                {step === 'GENERATING' && <span className="text-[10px] font-black text-emerald-500 ml-2 uppercase tracking-widest animate-pulse">인텔리전스 리포트 생성 중...</span>}
               </div>
             </div>
           )}
@@ -277,13 +283,13 @@ const CommunityWrite: React.FC = () => {
                 onChange={(e) => setUserInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleSend()}
                 disabled={isBotTyping}
-                placeholder={isBotTyping ? "분석 중..." : "AI 감사관에게 답변을 전송하세요..."}
-                className="flex-1 bg-black border border-white/10 rounded-2xl px-6 py-4 text-sm text-white outline-none focus:border-emerald-500/50 transition-all"
+                placeholder={isBotTyping ? "분석 중..." : "답변을 입력하세요..."}
+                className="flex-1 bg-black border border-white/10 rounded-2xl px-6 py-4 text-sm text-white outline-none focus:border-emerald-500/50 transition-all placeholder:text-gray-700"
               />
               <button 
                 onClick={handleSend}
                 disabled={!userInput.trim() || isBotTyping}
-                className="size-14 rounded-2xl bg-emerald-500 text-black flex items-center justify-center hover:scale-105 transition-all shadow-lg disabled:opacity-30"
+                className="size-14 rounded-2xl bg-emerald-500 text-black flex items-center justify-center hover:scale-105 transition-all shadow-xl disabled:opacity-30 disabled:grayscale"
               >
                 <svg className="size-6" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" /></svg>
               </button>

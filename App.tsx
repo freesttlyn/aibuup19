@@ -31,13 +31,11 @@ const ScrollToTop = () => {
 const ConfigModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [url, setUrl] = useState(localStorage.getItem('VITE_SUPABASE_URL') || '');
   const [key, setKey] = useState(localStorage.getItem('VITE_SUPABASE_ANON_KEY') || '');
-  const [aiKey, setAiKey] = useState(localStorage.getItem('API_KEY') || '');
 
   const handleSave = () => {
     localStorage.setItem('VITE_SUPABASE_URL', url);
     localStorage.setItem('VITE_SUPABASE_ANON_KEY', key);
-    localStorage.setItem('API_KEY', aiKey);
-    alert('설정이 저장되었습니다. 페이지를 새로고침합니다.');
+    alert('Supabase 설정이 저장되었습니다. 페이지를 새로고침합니다.\n(Gemini API Key는 배포 환경 변수에서 설정해야 합니다.)');
     window.location.reload();
   };
 
@@ -47,7 +45,7 @@ const ConfigModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md">
       <div className="bg-[#1a1a1a] border border-white/10 w-full max-w-lg rounded-[2.5rem] p-10 shadow-2xl animate-slideUp">
         <h2 className="text-2xl font-black mb-2 text-white italic">SYSTEM SETUP</h2>
-        <p className="text-gray-500 text-sm mb-8">환경 변수 연동이 실패한 경우, 아래에 직접 정보를 입력하세요.</p>
+        <p className="text-gray-500 text-sm mb-8">Supabase 환경 변수 연동이 실패한 경우 직접 입력하세요.</p>
         
         <div className="space-y-6">
           <div className="space-y-2">
@@ -58,16 +56,13 @@ const ConfigModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void
             <label className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Supabase Anon Key</label>
             <input type="text" value={key} onChange={e => setKey(e.target.value)} placeholder="eyJhbGci..." className="w-full bg-black border border-white/10 rounded-xl px-5 py-3 text-sm text-white outline-none focus:border-emerald-500/50" />
           </div>
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-emerald-500 uppercase tracking-widest">Google Gemini API Key</label>
-            <input type="text" value={aiKey} onChange={e => setAiKey(e.target.value)} placeholder="AIzaSy..." className="w-full bg-black border border-white/10 rounded-xl px-5 py-3 text-sm text-white outline-none focus:border-emerald-500/50" />
-          </div>
         </div>
 
         <div className="mt-10 flex gap-4">
           <button onClick={handleSave} className="flex-1 bg-emerald-500 text-black font-black py-4 rounded-2xl hover:bg-white transition-all uppercase text-xs tracking-widest">Save Config</button>
           <button onClick={onClose} className="px-8 py-4 border border-white/10 text-gray-500 font-black rounded-2xl hover:text-white transition-all uppercase text-xs tracking-widest">Cancel</button>
         </div>
+        <p className="mt-6 text-[10px] text-gray-600 text-center uppercase tracking-tighter">AI 기능을 사용하려면 배포 플랫폼에서 API_KEY 환경 변수를 설정하세요.</p>
       </div>
     </div>
   );

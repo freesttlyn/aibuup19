@@ -1,7 +1,7 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@^2.45.0';
 
-// 우선순위: localStorage > process.env (Netlify)
+// Supabase 환경 변수: localStorage(사용자 설정) > process.env (시스템)
 const getEnv = (key: string) => {
   return localStorage.getItem(key) || (typeof process !== 'undefined' ? process.env[key] : '') || '';
 };
@@ -23,5 +23,5 @@ export const supabase = createClient(
   isConfigured ? supabaseAnonKey : 'placeholder-key'
 );
 
-// 실시간으로 API_KEY를 가져오는 헬퍼 (Gemini용)
-export const getAiKey = () => getEnv('API_KEY');
+// Gemini API용 키는 반드시 시스템 환경 변수에서만 가져옵니다. (UI 입력 금지)
+export const getAiKey = () => (typeof process !== 'undefined' ? process.env.API_KEY : '') || '';

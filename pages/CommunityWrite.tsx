@@ -48,13 +48,13 @@ const CommunityWrite: React.FC = () => {
       return;
     }
 
-    // 배포 환경에서 API_KEY 존재 여부 체크
+    // Cloudflare Pages 환경에서 API_KEY 존재 여부 체크
     const apiKey = process.env.API_KEY;
     if (!apiKey || apiKey === 'undefined' || apiKey === '') {
       setMessages(prev => [...prev, { 
         id: Date.now(), 
         sender: 'bot', 
-        text: "🚨 [배포 환경 설정 오류]\nNetlify 환경 변수에 'API_KEY'가 등록되지 않았습니다. Netlify Site Settings에서 API_KEY를 등록하고 다시 배포해 주세요." 
+        text: "🚨 [배포 환경 설정 오류]\nCloudflare 환경 변수에 'API_KEY'가 등록되지 않았습니다. Cloudflare Settings > Build > Variables에서 API_KEY를 등록하고 'Redeploy' 해주세요." 
       }]);
       return;
     }
@@ -64,7 +64,6 @@ const CommunityWrite: React.FC = () => {
     setIsBotTyping(true);
 
     try {
-      // 가이드라인에 따라 호출 직전 인스턴스 생성
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
@@ -95,7 +94,7 @@ const CommunityWrite: React.FC = () => {
       ]);
     } catch (err) {
       console.error("AI Init Error:", err);
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "❌ AI 서버 연결에 실패했습니다. Netlify 환경 변수(API_KEY)가 올바른지 확인해 주세요." }]);
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "❌ AI 서버 연결에 실패했습니다. Cloudflare 환경 변수(API_KEY) 설정 후 다시 배포(Redeploy) 했는지 확인해 주세요." }]);
       setStep('SELECT');
     } finally {
       setIsBotTyping(false);

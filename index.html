@@ -1,0 +1,132 @@
+
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ai BuUp - AI 부업의 모든 것</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+      body {
+        font-family: 'Inter', 'Noto Sans KR', sans-serif;
+        background-color: #000;
+        color: #fff;
+        overflow-x: hidden;
+      }
+      .spline-container iframe {
+        pointer-events: auto;
+      }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #000;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #333;
+        border-radius: 10px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      /* no-scrollbar utility */
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+
+      /* Marquee Animation */
+      @keyframes marquee {
+        0% { transform: translateX(0); }
+        100% { transform: translateX(-50%); }
+      }
+      .animate-marquee {
+        display: flex;
+        width: max-content;
+        animation: marquee 40s linear infinite;
+      }
+      .animate-marquee:hover {
+        animation-play-state: paused;
+      }
+
+      /* Shake Animation */
+      @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-4px); }
+        75% { transform: translateX(4px); }
+      }
+      .animate-shake {
+        animation: shake 0.2s ease-in-out 0s 2;
+      }
+
+      /* Animated Border Light Sweep */
+      @keyframes border-glow {
+        0% { border-color: rgba(16, 185, 129, 0.1); }
+        50% { border-color: rgba(16, 185, 129, 0.4); }
+        100% { border-color: rgba(16, 185, 129, 0.1); }
+      }
+      .glow-border {
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        animation: border-glow 4s infinite ease-in-out;
+      }
+      .glow-border:hover {
+        border-color: rgba(16, 185, 129, 0.6) !important;
+      }
+
+      /* Markdown Content Styles */
+      .prose h1, .prose h2, .prose h3 {
+        color: #fff !important;
+        font-weight: 900 !important;
+        letter-spacing: -0.05em !important;
+        margin-top: 2.5em !important;
+        margin-bottom: 1em !important;
+      }
+      .prose p {
+        color: #a3a3a3 !important;
+        line-height: 1.8 !important;
+        margin-bottom: 1.5em !important;
+      }
+      .prose strong {
+        color: #10b981 !important;
+        font-weight: 700 !important;
+      }
+      .prose ul, .prose ol {
+        color: #a3a3a3 !important;
+        margin-bottom: 2em !important;
+      }
+      .prose li::marker {
+        color: #10b981 !important;
+      }
+      .prose blockquote {
+        border-left-color: #10b981 !important;
+        background: rgba(16, 185, 129, 0.05);
+        padding: 1.5rem 2rem !important;
+        border-radius: 0 1.5rem 1.5rem 0;
+        font-style: italic !important;
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.12.0",
+    "@google/genai": "https://esm.sh/@google/genai@^1.39.0",
+    "react-markdown": "https://esm.sh/react-markdown@^9.0.1",
+    "remark-gfm": "https://esm.sh/remark-gfm@^4.0.0"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="./index.tsx"></script>
+  </body>
+</html>

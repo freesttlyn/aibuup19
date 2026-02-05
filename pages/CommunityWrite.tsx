@@ -48,13 +48,13 @@ const CommunityWrite: React.FC = () => {
       return;
     }
 
-    // Cloudflare Pages 환경에서 API_KEY 존재 여부 체크
-    const apiKey = process.env.API_KEY;
-    if (!apiKey || apiKey === 'undefined' || apiKey === '') {
+    // Safely check for API_KEY
+    const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : undefined;
+    if (!apiKey) {
       setMessages(prev => [...prev, { 
         id: Date.now(), 
         sender: 'bot', 
-        text: "🚨 [배포 환경 설정 오류]\nCloudflare 환경 변수에 'API_KEY'가 등록되지 않았습니다. Cloudflare Settings > Build > Variables에서 API_KEY를 등록하고 'Redeploy' 해주세요." 
+        text: "🚨 [환경 설정 오류]\nAPI_KEY가 시스템에 등록되지 않았습니다. 관리자에게 문의하거나 환경 변수를 설정해 주세요." 
       }]);
       return;
     }
@@ -64,7 +64,7 @@ const CommunityWrite: React.FC = () => {
     setIsBotTyping(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
@@ -94,7 +94,7 @@ const CommunityWrite: React.FC = () => {
       ]);
     } catch (err) {
       console.error("AI Init Error:", err);
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "❌ AI 서버 연결에 실패했습니다. Cloudflare 환경 변수(API_KEY) 설정 후 다시 배포(Redeploy) 했는지 확인해 주세요." }]);
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "❌ AI 서버 연결에 실패했습니다. 네트워크 상태를 확인해 주세요." }]);
       setStep('SELECT');
     } finally {
       setIsBotTyping(false);
@@ -131,7 +131,7 @@ const CommunityWrite: React.FC = () => {
     setIsBotTyping(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
       const history = messages.map(m => `${m.sender === 'bot' ? '에이전트' : '사용자'}: ${m.text}`).join('\n');
       
       const prompt = `
@@ -140,7 +140,10 @@ const CommunityWrite: React.FC = () => {
         대화 데이터:
         ${history}
         
-        최상단에 "TITLE: [제목]" 형식으로 제목을 포함할 것.
+        작성 지침:
+        1. 최상단에 "TITLE: [제목]" 형식으로 매력적인 제목을 포함할 것.
+        2. 부업의 현실적인 난이도, 예상 수익, 리스크를 분석적으로 포함할 것.
+        3. 마크다운 문법을 사용하여 가독성 있게 작성할 것.
       `;
 
       const response = await ai.models.generateContent({

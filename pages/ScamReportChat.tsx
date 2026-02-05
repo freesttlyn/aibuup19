@@ -104,8 +104,10 @@ const ScamReportChat: React.FC = () => {
     }]);
 
     try {
-      // Correcting GoogleGenAI initialization as per the world-class guidelines to use process.env.API_KEY directly.
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : undefined;
+      if (!apiKey) throw new Error("API Key is missing from the environment.");
+
+      const ai = new GoogleGenAI({ apiKey: apiKey });
       const qaPairs = QUESTIONS.map((q, i) => `질문: ${q}\n답변: ${finalAnswers[i]}`).join('\n\n');
       
       const prompt = `
@@ -128,7 +130,6 @@ const ScamReportChat: React.FC = () => {
         contents: prompt,
       });
 
-      // Directly accessing .text property of GenerateContentResponse.
       const aiText = response.text || "";
       const titleMatch = aiText.match(/TITLE:\s*(.*)/i);
       const generatedTitle = titleMatch ? titleMatch[1].trim() : `[피해사례] ${finalAnswers[0]} 관련 제보`;
@@ -174,7 +175,7 @@ const ScamReportChat: React.FC = () => {
 
 **1. 실행 부업:** ${finalAnswers[0]}
 **2. 강의 비용:** ${finalAnswers[1]}
-**3. 피해 판단:** AI 분석 오류로 기본 데이터만 저장되었습니다. (${err.message})
+**3. 피해 판단:** AI 분석 중 오류가 발생하여 기본 데이터만 저장되었습니다.
       `.trim();
 
       const fallbackPost = {
@@ -182,7 +183,7 @@ const ScamReportChat: React.FC = () => {
         author: authorName || '익명',
         category: '강팔이피해사례',
         content: structuredContent,
-        result: '검토 중',
+        result: '검토 중 (AI 오류)',
         cost: finalAnswers[1],
         user_id: user?.id,
         created_at: new Date().toISOString()
@@ -311,13 +312,6 @@ const ScamReportChat: React.FC = () => {
           )}
         </div>
       </div>
-      
-      <style>{`
-        @keyframes slideUp {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-      `}</style>
     </div>
   );
 };

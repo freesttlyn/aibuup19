@@ -104,10 +104,7 @@ const ScamReportChat: React.FC = () => {
     }]);
 
     try {
-      const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : undefined;
-      if (!apiKey) throw new Error("API Key is missing from the environment.");
-
-      const ai = new GoogleGenAI({ apiKey: apiKey });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const qaPairs = QUESTIONS.map((q, i) => `질문: ${q}\n답변: ${finalAnswers[i]}`).join('\n\n');
       
       const prompt = `
@@ -175,7 +172,7 @@ const ScamReportChat: React.FC = () => {
 
 **1. 실행 부업:** ${finalAnswers[0]}
 **2. 강의 비용:** ${finalAnswers[1]}
-**3. 피해 판단:** AI 분석 중 오류가 발생하여 기본 데이터만 저장되었습니다.
+**3. 피해 판단:** AI 분석 중 오류가 발생하여 기본 데이터만 저장되었습니다. (원인: ${err.message || '인증 오류'})
       `.trim();
 
       const fallbackPost = {

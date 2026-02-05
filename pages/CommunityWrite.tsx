@@ -48,23 +48,13 @@ const CommunityWrite: React.FC = () => {
       return;
     }
 
-    // Safely check for API_KEY
-    const apiKey = typeof process !== 'undefined' ? process.env.API_KEY : undefined;
-    if (!apiKey) {
-      setMessages(prev => [...prev, { 
-        id: Date.now(), 
-        sender: 'bot', 
-        text: "🚨 [환경 설정 오류]\nAPI_KEY가 시스템에 등록되지 않았습니다. 관리자에게 문의하거나 환경 변수를 설정해 주세요." 
-      }]);
-      return;
-    }
-
     setSelectedCat(name);
     setStep('CHATTING');
     setIsBotTyping(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+      // API_KEY는 직접 참조해야 빌드 시스템이 값을 주입할 수 있습니다.
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const chat = ai.chats.create({
         model: 'gemini-3-flash-preview',
         config: {
@@ -92,9 +82,13 @@ const CommunityWrite: React.FC = () => {
         { id: Date.now(), sender: 'user', text: name },
         { id: Date.now() + 1, sender: 'bot', text: botText }
       ]);
-    } catch (err) {
+    } catch (err: any) {
       console.error("AI Init Error:", err);
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "❌ AI 서버 연결에 실패했습니다. 네트워크 상태를 확인해 주세요." }]);
+      let errorMsg = "❌ AI 서버 연결에 실패했습니다. 네트워크 상태를 확인해 주세요.";
+      if (err.message?.includes('API_KEY')) {
+        errorMsg = "🚨 [인증 오류] API 키가 유효하지 않거나 설정되지 않았습니다. 관리자 설정(Cloudflare)을 확인하세요.";
+      }
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: errorMsg }]);
       setStep('SELECT');
     } finally {
       setIsBotTyping(false);
@@ -120,7 +114,7 @@ const CommunityWrite: React.FC = () => {
       }
     } catch (err) {
       console.error("AI Chat Error:", err);
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "메시지 전송 중 오류가 발생했습니다." }]);
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "메시지 전송 중 오류가 발생했습니다. 다시 시도해 주세요." }]);
     } finally {
       setIsBotTyping(false);
     }
@@ -131,7 +125,7 @@ const CommunityWrite: React.FC = () => {
     setIsBotTyping(true);
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const history = messages.map(m => `${m.sender === 'bot' ? '에이전트' : '사용자'}: ${m.text}`).join('\n');
       
       const prompt = `
@@ -182,7 +176,7 @@ const CommunityWrite: React.FC = () => {
 
     } catch (err) {
       console.error("Report Generation Error:", err);
-      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "리포트 생성 중 오류가 발생했습니다." }]);
+      setMessages(prev => [...prev, { id: Date.now(), sender: 'bot', text: "리포트 생성 중 오류가 발생했습니다. 대화 내용을 복사해 두시기 바랍니다." }]);
       setStep('CHATTING');
     } finally {
       setIsBotTyping(false);
